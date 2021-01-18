@@ -16,7 +16,7 @@ This exercise accompanies the introductory material in Environmental Data Analyt
 6. When you have completed the assignment, **Knit** the text and code into a single PDF file.
 8. After Knitting, submit the completed exercise (PDF file) to the dropbox in Sakai. Add your last name into the file name (e.g., "Salk_A03_Introduction.Rmd") prior to submission.
 
-The completed exercise is due on Tuesday, January 14th at 1:00 pm.
+The completed exercise is due on <>.
 
 ## 1) Discussion Questions
 
