@@ -1,6 +1,6 @@
 ---
 title: "Assignment 1: Introduction"
-author: "Student Name"
+author: "Zoe Wong"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -22,21 +22,21 @@ The completed exercise is due on <>.
 
 1. What are your previous experiences with data analytics, R, and Git? Include both formal and informal training.
 
-> Answer: 
+> Answer: I took ENV 710 last semester with John Poulsen, where we learned basic statistical models in R.  Prior to that, I took an introductory stats course in undergrad where we used R sparingly - it was not well taught and I didn't learn much.  I've never used Git before and I haven't used R or analyzed my own data outside of ENV 710.
 
 2. Are there any components of the course about which you feel confident?
 
-> Answer: 
+> Answer: I feel pretty confident navigating R and running commands.
 
 3. Are there any components of the course about which you feel apprehensive?
 
-> Answer: 
+> Answer: Using Git seems like it will take some time to get used to and remember the different commands.  I'm also not the most confident doing statistical tests in general - I did fine in ENV 710 but everything is still just a little foggy.
 
 
 ## 2) GitHub
 
 Provide a link below to your forked course repository in GitHub. Make sure you have pulled all recent changes from the course repository  and that you have updated your course README file. 
 
-> Answer: 
+> Answer: https://github.com/ztw814/Environmental_Data_Analytics_2021
 
 
