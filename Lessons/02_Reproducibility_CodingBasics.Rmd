@@ -179,7 +179,7 @@ recipe2 <- function(x){
   mix2 <- x/2
   return(list(mix1 = mix1, #comma indicates we continue onto the next line
               mix2 = mix2))
-}
+}  # if you don't specify variable names in list, the R output will be less coherent
 
 doublesimplemeal <- recipe2(6)
 doublesimplemeal
@@ -226,7 +226,7 @@ meal2 <- recipe4(2); meal2
 meal3 <- recipe5(3); meal3
 
 recipe6 <- function(x){
-  ifelse(x<3, x*2, x/2) #log_exp, if TRUE, if FALSE
+  ifelse(x<3, x*2, x/2) #ifelse(logical_exp, if TRUE do this (x*2), if FALSE, do this (x/2)
   
 }
 

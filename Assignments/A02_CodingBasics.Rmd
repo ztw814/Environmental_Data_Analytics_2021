@@ -1,6 +1,6 @@
 ---
 title: "Assignment 2: Coding Basics"
-author: "Student Name"
+author: "Zoe Wong"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -32,11 +32,14 @@ This exercise accompanies the lessons in Environmental Data Analytics on coding 
 
 ```{r}
 #1. 
+by4 <- seq(1, 100, 4)  # creating sequence 1-100, jumping by 4
 
 #2. 
+mean(by4)  # finding mean of sequence
+median(by4)  # finding median of sequence
 
 #3. 
-
+mean(by4) > median(by4)  # determining if mean is greater than median; if so, R will return TRUE
 ```
 
 ## Basics Day 2
@@ -50,21 +53,34 @@ This exercise accompanies the lessons in Environmental Data Analytics on coding 
 8. Label the columns of your data frame with informative titles.
 
 ```{r}
-
+students <- c("Zoe", "Caitlin", "Joyce", "Grace")
+scores <- c(97, 94, 49, 78)
+pass <- c(TRUE, TRUE, FALSE, TRUE)
+testresults <- data.frame("students" = students, "scores" = scores, "pass" = pass)
 ```
 
 9. QUESTION: How is this data frame different from a matrix?
 
-> Answer: 
+> Answer: It has multiple different data types (numerical, logical, and characters).
 
 10. Create a function with an if/else statement. Your function should determine whether a test score is a passing grade of 50 or above (TRUE or FALSE). You will need to choose either the `if` and `else` statements or the `ifelse` statement. Hint: Use `print`, not `return`. The name of your function should be informative.
 
 11. Apply your function to the vector with test scores that you created in number 5. 
 
 ```{r}
+passorfail <- function(score){
+  if (score >= 50){
+    print(score >= 50)
+  }
+  else {
+    print(score>50)
+  }
+}
 
+result <- passorfail(scores)
+result
 ```
 
 12. QUESTION: Which option of `if` and `else` vs. `ifelse` worked? Why?
 
-> Answer: 
+> Answer: If and else worked because there are only two options in this case - either the student got a score of 50 or above and passed, or they got a score below 50 and failed.  Ifelse would be useful if there were three possible outcomes or if the conditions for passing were more complex.
