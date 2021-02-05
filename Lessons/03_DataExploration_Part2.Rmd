@@ -35,7 +35,7 @@ USGS.flow.data <- read.csv("./Data/Processed/USGS_Site02085000_Flow_Processed.cs
 # Alternate option: click on data frame in Environment tab
 
 colnames(USGS.flow.data)
-str(USGS.flow.data)
+str(USGS.flow.data) # look at structure of data
 dim(USGS.flow.data)
 
 # Check our date column
@@ -55,31 +55,36 @@ Note: each of these approaches utilize the package "ggplot2". We will be coverin
 
 ### Bar Chart (function: geom_bar)
 
-Visualize count data for categorical variables. 
+Visualize count data for *categorical* variables. 
 
 ```{r, fig.height = 3, fig.width = 4}
 ggplot(USGS.flow.data, aes(x = discharge.mean.approval)) +
   geom_bar()
+# aes = aesthetics
+
+ggplot(na.omit(USGS.flow.data), aes(x = discharge.mean.approval)) +
+  geom_bar() #omits all rows w/ an NA value
 ```
 
 ### Histogram (function: geom_histogram)
 
-Visualize distributions of values for continuous numerical variables. What is happening in each line of code? Insert a comment above each line.
+Visualize distributions of values for *continuous numerical variables*. What is happening in each line of code? Insert a comment above each line.
 
 ```{r, fig.height = 3, fig.width = 4}
 #
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean))
 
-#
+#changing number of bins (bars) by varying their width
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean), binwidth = 10)
 
-#
+#changing number of bins by selecting a number
+#generally between 5-20 bins is good
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean), bins = 20)
 
-#
+#force x-axis to cut off at 500
 ggplot(USGS.flow.data, aes(x = discharge.mean)) +
   geom_histogram(binwidth = 10) + 
   scale_x_continuous(limits = c(0, 500))
@@ -91,17 +96,18 @@ ggplot(USGS.flow.data) +
 ```
 ### Frequency line graph (function: geom_freqpoly)
 
-An alternate to a histogram is a frequency polygon graph (distributions of values for continuous numerical variables). Instead of displaying bars,  counts of continuous variables are displayed as lines. This is advantageous if you want to display multiple variables or categories of variables at once.
+An alternate to a histogram is a frequency polygon graph (distributions of values for continuous numerical variables). Instead of displaying bars,  counts of continuous variables are displayed as lines. This is advantageous if you want to *display multiple variables or categories of variables at once*.
 
 ```{r, fig.height = 3, fig.width = 4}
-#
+#lty = line type (2 is dashed)
 ggplot(USGS.flow.data) +
+  #geom_histogram(aes(x = gage.height.mean), bins = 50) +
   geom_freqpoly(aes(x = gage.height.mean), bins = 50) +
-  geom_freqpoly(aes(x = gage.height.min), bins = 50, color = "darkgray") +
+  geom_freqpoly(aes(x = gage.height.min), bins = 50, color = "red") +
   geom_freqpoly(aes(x = gage.height.max), bins = 50,  lty = 2) +
   scale_x_continuous(limits = c(0, 10))
 
-#
+#defining color according to a categorical variable
 ggplot(USGS.flow.data) +
   geom_freqpoly(aes(x = gage.height.mean, color = gage.height.mean.approval), bins = 50) +
   scale_x_continuous(limits = c(0, 10)) +
@@ -127,18 +133,18 @@ An alternate option is a violin plot, which displays density distributions, some
 ggplot(USGS.flow.data) +
   geom_boxplot(aes(x = gage.height.mean.approval, y = gage.height.mean))
 
-#
+#slicing data: showing the variance in discharge.mean across different slices of gage.height.mean
 ggplot(USGS.flow.data) +
   geom_boxplot(aes(x = gage.height.mean, y = discharge.mean, group = cut_width(gage.height.mean, 1)))
 
-#
+#violin plot: shows both range of values as well as distribution at different values (width is relative to number of data points at a particular value)
 ggplot(USGS.flow.data) +
   geom_violin(aes(x = gage.height.mean.approval, y = gage.height.mean), 
               draw_quantiles = c(0.25, 0.5, 0.75))
 ```
 
 ### Scatterplot (function: geom_point)
-Visualize relationships between continuous numerical variables.
+Visualize relationships between *continuous numerical* variables.
 
 ```{r, fig.height = 3, fig.width = 4}
 ggplot(USGS.flow.data) +
