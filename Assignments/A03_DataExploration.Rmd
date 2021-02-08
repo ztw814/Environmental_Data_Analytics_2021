@@ -26,8 +26,8 @@ The completed exercise is due on <>.
 getwd()
 library(tidyverse)
 
-Neonics <- read.csv("../Data/Raw/ECOTOX_Neonicotinoids_Insects_raw.csv")
-Litter <- read.csv("../Data/Raw/NEON_NIWO_Litter_massdata_2018-08_raw.csv")
+Neonics <- read.csv("../Data/Raw/ECOTOX_Neonicotinoids_Insects_raw.csv", stringsAsFactors = TRUE)
+Litter <- read.csv("../Data/Raw/NEON_NIWO_Litter_massdata_2018-08_raw.csv", stringsAsFactors = TRUE)
 ```
 
 ## Learn about your system
@@ -60,10 +60,6 @@ dim(Neonics) #4623 rows, 30 columns
 6. Using the `summary` function on the "Effects" column, determine the most common effects that are studied. Why might these effects specifically be of interest?
 ```{r}
 summary(Neonics$Effect)
-unique(Neonics$Effect)
-
-table(Neonics$Effect)
-
 ```
 
 > Answer: The most common effects are population and mortality.  Mortality would be of interest in determining whether the insecticide is effective or not, while population would be of interest to see how the distribution of plant or insect population changes with insecticide application, also as a measure of effectiveness.
@@ -71,7 +67,7 @@ table(Neonics$Effect)
 7. Using the `summary` function, determine the six most commonly studied species in the dataset (common name). What do these species have in common, and why might they be of interest over other insects? Feel free to do a brief internet search for more information if needed.
 
 ```{r}
-sort(table(Neonics$Species.Common.Name))
+sort(summary(Neonics$Species.Common.Name))
 ```
 
 > Answer: The most common species studied are the Honey Bee (667 observations), Parasitic Wasp (285), Buff Tailed Bumblebee (183), Carniolan Honey Bee (152), Bumble Bee (140), and Italian Honeybee (113).  The bee species are critical to study because they are essential crop pollinators, so any negative impact on their populations from insecticides would trickle down to crop success.  The parasitic wasp is an important species to study because it naturally controls the populations of other insects by laying eggs in them and killing them once the larvae hatch.
@@ -79,7 +75,7 @@ sort(table(Neonics$Species.Common.Name))
 8. Concentrations are always a numeric value. What is the class of Conc.1..Author. in the dataset, and why is it not numeric?
 
 ```{r}
-summary(Neonics$Conc.1..Author.)
+class(Neonics$Conc.1..Author.)
 unique(Neonics$Conc.1..Author.)
 ```
 
