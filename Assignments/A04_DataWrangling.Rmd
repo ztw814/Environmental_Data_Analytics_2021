@@ -1,6 +1,6 @@
 ---
 title: "Assignment 4: Data Wrangling"
-author: "Student Name"
+author: "Zoe Wong"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -25,8 +25,32 @@ The completed exercise is due on Tuesday, Feb 16 @ 11:59pm.
 
 ```{r, message = FALSE}
 #1
+getwd()
+library(tidyverse)
+library(lubridate)
+
+o3.2018 <- read.csv("../Data/Raw/EPAair_O3_NC2018_raw.csv", stringsAsFactors = TRUE)
+o3.2019 <- read.csv("../Data/Raw/EPAair_O3_NC2019_raw.csv", stringsAsFactors = TRUE)
+pm25.2018 <- read.csv("../Data/Raw/EPAair_PM25_NC2018_raw.csv", stringsAsFactors = TRUE)
+pm25.2019 <- read.csv("../Data/Raw/EPAair_PM25_NC2019_raw.csv", stringsAsFactors = TRUE)
 
 #2
+dim(o3.2018)
+colnames(o3.2018)
+summary(o3.2018)
+class(o3.2018$Date)
+
+dim(o3.2019)
+colnames(o3.2019)
+summary(o3.2019)
+
+dim(pm25.2018)
+colnames(pm25.2018)
+summary(pm25.2018)
+
+dim(pm25.2019)
+colnames(pm25.2019)
+summary(pm25.2019)
 ```
 
 ## Wrangle individual datasets to create processed files.
@@ -37,12 +61,26 @@ The completed exercise is due on Tuesday, Feb 16 @ 11:59pm.
 
 ```{r}
 #3
+o3.2018$Date <- as.Date(o3.2018$Date, format = "%m/%d/%Y")
+o3.2019$Date <- as.Date(o3.2019$Date, format = "%m/%d/%Y")
+pm25.2018$Date <- as.Date(pm25.2018$Date, format = "%m/%d/%Y")
+pm25.2019$Date <- as.Date(pm25.2019$Date, format = "%m/%d/%Y")
 
 #4
+o3.2018 <- select(o3.2018, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+o3.2019 <- select(o3.2019, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+pm25.2018 <- select(pm25.2018, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+pm25.2019 <- select(pm25.2019, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
 
 #5
+pm25.2018$AQS_PARAMETER_DESC <- "PM2.5"
+pm25.2019$AQS_PARAMETER_DESC <- "PM2.5"
 
 #6
+write.csv(o3.2018, row.names = FALSE, file = "../Data/Processed/EPAair_O3_NC2018_processed.csv")
+write.csv(o3.2019, row.names = FALSE, file = "../Data/Processed/EPAair_O3_NC2019_processed.csv")
+write.csv(pm25.2018, row.names = FALSE, file = "../Data/Processed/EPAair_PM25_NC2018_processed.csv")
+write.csv(pm25.2019, row.names = FALSE, file = "../Data/Processed/EPAair_PM25_NC2019_processed.csv")
 
 ```
 
@@ -61,16 +99,37 @@ The completed exercise is due on Tuesday, Feb 16 @ 11:59pm.
 11. Save your processed dataset with the following file name: "EPAair_O3_PM25_NC1718_Processed.csv"
 
 ```{r}
-#7
+#7 checking colnamesare all the exact same
+colnames(o3.2018) == colnames(o3.2019) 
+colnames(pm25.2018) == colnames(pm25.2019)
+colnames(o3.2018) == colnames(pm25.2018)
 
-#8
+EPAair1819 <- rbind(o3.2018, o3.2019, pm25.2018, pm25.2019)
+
+#8 used multiple variables because I couldn't get intersect() to work with more than 2 arguments
+commonSite.o3 <- intersect(o3.2018$Site.Name, o3.2019$Site.Name)
+commonSite.pm25 <- intersect(pm25.2018$Site.Name, pm25.2019$Site.Name)
+commonSite.all <- intersect(commonSite.o3, commonSite.pm25)
+commonSite.all <- commonSite.all[-13]
+
+EPAair1819.new <- EPAair1819 %>% 
+  filter(Site.Name %in% commonSite.all) %>% 
+  group_by(Date, Site.Name, AQS_PARAMETER_DESC, COUNTY) %>% 
+  summarise(meanAQI = mean(DAILY_AQI_VALUE),
+            meanLat = mean(SITE_LATITUDE),
+            meanLong = mean(SITE_LONGITUDE)) %>% 
+  mutate(Month = month(Date), Year = year(Date))
 
 #9
+EPAair1819.new <- select(EPAair1819.new, Date, Month, Year, Site.Name, COUNTY, AQS_PARAMETER_DESC, meanAQI:meanLong) #rearranging columns
+
+EPAair1819.new <- pivot_wider(EPAair1819.new, id_cols = c(Date:COUNTY, meanLat, meanLong), names_from = AQS_PARAMETER_DESC, values_from = meanAQI)
 
 #10
+dim(EPAair1819.new)
 
 #11
-
+write.csv(EPAair1819.new, row.names = FALSE, file = "../Data/Processed/EPAair_O3_PM25_NC1718_Processed.csv")
 ```
 
 
@@ -81,13 +140,20 @@ The completed exercise is due on Tuesday, Feb 16 @ 11:59pm.
 
 ```{r}
 #12a
+EPAair1819.summary <- EPAair1819.new %>% 
+  group_by(Site.Name, Month, Year) %>% 
+  summarise(mean.ozone = mean(Ozone),
+            mean.pm25 = mean(PM2.5))
 
 #12b
+EPAair1819.noNA <- EPAair1819.summary %>% 
+  drop_na(Month, Year)
 
 #13
+dim(EPAair1819.noNA)
 
 ```
 
 14. Why did we use the function `drop_na` rather than `na.omit`?
 
-> Answer: 
+> Answer: na.omit is used to omit NAs from all columns in the dataset, whereas drop_na is more versatile and can be used to get rid of NAs from specific columns as well.
