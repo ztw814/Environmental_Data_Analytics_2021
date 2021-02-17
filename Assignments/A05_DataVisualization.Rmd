@@ -75,4 +75,6 @@ Question: What do you observe about the variables of interest over seasons and b
 ```{r}
 
 ```
+Question: Which of these plots (6 vs. 7) do you think is more effective, and why? 
 
+> Answer:
