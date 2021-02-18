@@ -28,7 +28,7 @@ PeterPaul.chem.nutrients <-
   read.csv("./Data/Processed/NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv", stringsAsFactors = TRUE)
 PeterPaul.chem.nutrients.gathered <-
   read.csv("./Data/Processed/NTL-LTER_Lake_Nutrients_PeterPaulGathered_Processed.csv", stringsAsFactors = TRUE)
-EPAair <- read.csv("./Data/Processed/EPAair_O3_PM25_NC1819_Processed.csv", stringsAsFactors = TRUE)
+EPAair <- read.csv("./Data/Processed/EPAair_O3_PM25_NC1718_Processed.csv", stringsAsFactors = TRUE)
 
 EPAair$Date <- as.Date(EPAair$Date, format = "%Y-%m-%d")
 PeterPaul.chem.nutrients$sampledate <- as.Date(PeterPaul.chem.nutrients$sampledate, format = "%Y-%m-%d")
@@ -69,7 +69,7 @@ Here are some commonly used layers for plotting in ggplot:
 Here are some commonly used aesthetic types that can be manipulated in ggplot: 
 
 * color
-* fill
+* fill (color)
 * shape
 * size
 * transparency
@@ -77,7 +77,7 @@ Here are some commonly used aesthetic types that can be manipulated in ggplot:
 ### Plotting continuous variables over time: Scatterplot and Line Plot
 
 ```{r, fig.height = 3, fig.width = 4, warning = FALSE}
-# Scatterplot
+# Scatterplot (plot dimensions changed above)
 ggplot(EPAair, aes(x = Date, y = Ozone)) + 
   geom_point()
 
@@ -89,12 +89,16 @@ print(O3plot)
 O3plot2 <- ggplot(EPAair) +
   #geom_point(aes(x = Date, y = Ozone, color = "blue"))
   geom_point(aes(x = Date, y = Ozone), color = "blue")
+  # color must be outside aes definition of x,y
+  # adding something inside aes() means adding another layer to the plot/data
 print(O3plot2)
 
 # Add additional variables
 # How could you automatically assign a marker color to a variable? 
 PMplot <- 
   ggplot(EPAair, aes(x = Month, y = PM2.5, shape = as.factor(Year), color = Site.Name)) +
+  # shape = as.factor(Year) means assign a different shape to data from each year
+  # color is within aes bc adding another layer - color based on Site.Name
   geom_point()
 print(PMplot)
 
@@ -103,24 +107,24 @@ PMplot.faceted <-
   ggplot(EPAair, aes(x = Month, y = PM2.5, shape = as.factor(Year))) +
   geom_point() +
   facet_wrap(vars(Site.Name), nrow = 3)
+  #facet_wrap splitting the one plot into multiple plots based on site; displayed in 3 rows (nrow)
 print(PMplot.faceted)
 
 # Filter dataset within plot building and facet by multiple variables
 PMplot.faceted2 <- 
   ggplot(subset(EPAair, Site.Name == "Clemmons Middle" | Site.Name == "Leggett" |
-                  Site.Name == "Bryson City"), 
+                  Site.Name == "Bryson City"), # subset to only include the three sites; use | to include all three sites - CM or L or BC
          aes(x = Month, y = PM2.5)) + 
   geom_point() +
-  facet_grid(Site.Name ~ Year) 
+  facet_grid(Site.Name ~ Year) # want separate plots based on site and year (don't need shape = as.factor)
 print(PMplot.faceted2)
 
 # Plot true time series with geom_line
 PMplot.line <- 
   ggplot(subset(EPAair, Site.Name == "Leggett"), 
-         aes(x = Date, y = PM2.5)) +
+         aes(x = Date, y = PM2.5)) + #only including Leggett
   geom_line()
 print(PMplot.line)
-
 
 ```
 
@@ -147,14 +151,14 @@ tempvsdepth <-
   ggplot(PeterPaul.chem.nutrients, aes(x = temperature_C, y = depth)) +
   #ggplot(PeterPaul.chem.nutrients, aes(x = temperature_C, y = depth, color = daynum)) +
   geom_point() +
-  scale_y_reverse()
+  scale_y_reverse() #to invert y scale to show depth
 print(tempvsdepth)
 
 NvsP <-
   ggplot(PeterPaul.chem.nutrients, aes(x = tp_ug, y = tn_ug, color = depth)) +
   geom_point() +
-  geom_smooth(method = lm) +
-  geom_abline(aes(slope = 16, intercept = 0))
+  geom_smooth(method = lm) + # creating a trendline/curve based on data (lm = linear model/line)
+  geom_abline(aes(slope = 16, intercept = 0)) # adding a user-defined line (not based on data)
 print(NvsP)
 
 ```
@@ -165,20 +169,23 @@ A traditional way to display summary statistics of continuous variables is a bar
 What might be more effective ways to display the information? Navigate to the boxplots page in the Caveats section to explore further.
 
 ```{r, fig.height = 3, fig.width = 4, warning = FALSE}
-# Box and whiskers plot
+# Box and whiskers plot (visualizes point distribution)
 Nutrientplot3 <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(x = lakename, y = concentration)) +
-  geom_boxplot(aes(color = nutrient)) # Why didn't we use "fill"?
+  geom_boxplot(aes(color = nutrient)) # Why didn't we use "fill"? fill would only fill the box itself, leaving points/outlines black
 print(Nutrientplot3)
 
 # Dot plot
 Nutrientplot4 <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(x = lakename, y = concentration)) +
   geom_dotplot(aes(color = nutrient, fill = nutrient), binaxis = "y", binwidth = 1, 
-               stackdir = "center", position = "dodge", dotsize = 2) #
+               stackdir = "center", position = "dodge", dotsize = 2) 
+  #binaxis: stack points on y axis (vertically)
+  #stackdir: stack points over the center
+  #position: don't overlay points - let them spill out to the side to see all of them
 print(Nutrientplot4)
 
-# Violin plot
+# Violin plot (visualizes density plot in addition to distribution)
 Nutrientplot5 <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(x = lakename, y = concentration)) +
   geom_violin(aes(color = nutrient)) #
@@ -188,18 +195,19 @@ print(Nutrientplot5)
 # Using a tidy dataset
 Nutrientplot6 <-
   ggplot(PeterPaul.chem.nutrients) +
+  # adding a polygon for each nutrient
   geom_freqpoly(aes(x = tn_ug), color = "darkred") +
   geom_freqpoly(aes(x = tp_ug), color = "darkblue") +
   geom_freqpoly(aes(x = nh34), color = "blue") +
   geom_freqpoly(aes(x = no23), color = "royalblue") +
   geom_freqpoly(aes(x = po4), color = "red") 
-print(Nutrientplot6)
+print(Nutrientplot6) #bad plot: required a lot of code, no legend, x-axis is wrong
 
-# Using a gathered dataset
+# Using a gathered dataset to solve problems from plot6
 Nutrientplot7 <-   
   ggplot(PeterPaul.chem.nutrients.gathered) +
   geom_freqpoly(aes(x = concentration, color = nutrient))
-print(Nutrientplot7)
+print(Nutrientplot7) #works better bc nutrients are all within one column, so can just call the column and ggplot will visualize better
 
 # Frequency polygons have the risk of becoming spaghetti plots. 
 # See <https://www.data-to-viz.com/caveat/spaghetti.html> for more info.
@@ -207,7 +215,7 @@ print(Nutrientplot7)
 # Ridgeline plot
 Nutrientplot6 <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(y = nutrient, x = concentration)) +
-  geom_density_ridges(aes(fill = lakename), alpha = 0.5) #
+  geom_density_ridges(aes(fill = lakename), alpha = 0.5) # requires additional package; makes a separate ridge for each y value w/ different fill according to lakename
 print(Nutrientplot6)
 
 

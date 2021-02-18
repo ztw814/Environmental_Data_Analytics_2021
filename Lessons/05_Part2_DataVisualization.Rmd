@@ -42,37 +42,40 @@ print(O3plot)
 
 O3plot1 <- ggplot(EPAair) +
   geom_point(aes(x = Date, y = Ozone)) +
-  theme_gray()
+  theme_gray() # nothing happens - theme_gray is default
 print(O3plot1)
 
 O3plot2 <- ggplot(EPAair) +
   geom_point(aes(x = Date, y = Ozone)) +
-  theme_bw()
+  theme_bw() #removes gray background, keeps gridlines, black axes
 print(O3plot2)
 
 O3plot3 <- ggplot(EPAair) +
   geom_point(aes(x = Date, y = Ozone)) +
-  theme_light()
+  theme_light() #no background, all grey gridlines/axes
 print(O3plot3)
 
 O3plot4 <- ggplot(EPAair) +
   geom_point(aes(x = Date, y = Ozone)) +
-  theme_classic()
+  theme_classic() #no gridlines/background, only black axes
 print(O3plot4)
 ```
 
 Notice that some aspects of your graph have not been adjusted, including: 
 
-* text size
-* axis label colors
+* text size (default size 11)
+* axis label colors (default black labels, grey axis text)
 * legend position and justification
 
 If you would like to set a common theme across all plots in your analysis session, you may define a theme and call up that theme for each graph. This eliminates the need to add multiple lines of code in each plot. 
 
 ```{r, fig.height = 3, fig.width = 4, warning = FALSE}
-mytheme <- theme_classic(base_size = 14) +
-  theme(axis.text = element_text(color = "black"), 
-        legend.position = "top") #alternative: legend.position + legend.justification
+#defining our own theme by manipulating existing theme
+mytheme <- theme_classic(base_size = 14) + #increasing font size
+  theme(axis.text = element_text(color = "black"),
+        legend.position = "top") #alternative: legend.position + legend.justification (right, left, etc)
+
+### why did label font size change as well?
 
 # options: call the theme in each plot or set the theme at the start. 
 
@@ -81,7 +84,7 @@ O3plot5 <- ggplot(EPAair) +
   mytheme
 print(O3plot5)  
 
-theme_set(mytheme)
+theme_set(mytheme) #set theme across all subsequent ggplots
 
 O3plot6 <- ggplot(EPAair) +
   geom_point(aes(x = Date, y = Ozone))
@@ -95,17 +98,27 @@ While the theme allows us to set multiple aspects of plots, ggplot allows us to 
 
 ```{r, fig.height = 3, fig.width = 4, warning = FALSE}
 O3plot7 <- ggplot(EPAair, aes(x = Date, y = Ozone)) +
+  #lty = line type (2 = dashed)
+  #hline adds a user-defined (h)orizontal line to plot
   geom_hline(yintercept = 50, lty = 2) +
   geom_hline(yintercept = 100, lty = 2) +
+  #alpha changes transparency of points
   geom_point(alpha = 0.5, size = 1.5) +
-  geom_text(x = as.Date("2020-01-01"), y = 45, label = "good", hjust = 1, fontface = "bold") +   # hjust = 1 means left align
+  #geom_text define exact x,y position of text
+  #hjust = 1 means left align
+  geom_text(x = as.Date("2020-01-01"), y = 45, label = "good", hjust = 1, fontface = "bold") +   
   geom_text(x = as.Date("2020-01-01"), y = 95, label = "moderate", hjust = 1, fontface = "bold") +
   geom_text(x = as.Date("2020-01-01"), y = 120, label = "unhealthy (sensitive groups)", hjust = 1, fontface = "bold") +
+  #scaling x axis, date_labels specifies format of date label
+  #can only use scale_x_date for dates?
   scale_x_date(limits = as.Date(c("2018-01-01", "2019-12-31")), 
     date_breaks = "2 months", date_labels = "%b %y") +
+  # [] makes subscript, * knits two strings together
   ylab(expression("O"[3]* " AQI Value")) +
+  #changing x-axis text only
+  #use element_text when changing within theme
   theme(axis.text.x = element_text(angle = 45,  hjust = 1))
-print(O3plot7)  
+print(O3plot7)
 
 ```
 
@@ -159,9 +172,11 @@ library(viridis)
 library(RColorBrewer)
 library(colormap)
 
+#showing colors in plots tab
 scales::show_col(colormap(colormap = colormaps$viridis, nshades = 16))
 scales::show_col(colormap(colormap = colormaps$inferno, nshades = 16))
 scales::show_col(colormap(colormap = colormaps$magma, nshades = 16))
+#display all color ramps available w/in a package
 display.brewer.all(n = 9)
 
 NvsP <-
@@ -174,11 +189,11 @@ print(NvsP)
 # change your legend labels
 NvsP2 <-
   ggplot(PeterPaul.chem.nutrients, aes(x = tp_ug, y = tn_ug, color = depth, shape = lakename)) +
-  geom_point(alpha = 0.7, size = 2.5) +
-  #labs() + # change your legend labels here
-  scale_shape_manual(values = c(15, 17)) +
+    geom_point(alpha = 0.7, size = 2.5) + # add some transparency to points, make bigger
+  labs(color = "Depth", shape = "Lake name") + # how to change x/y labs?
+  scale_shape_manual(values = c(15, 17)) + # changing shape of points (choosing shapes 15 and 17)
   #scale_color_distiller(palette = "Blues", direction = 1) + # use scale_color_brewer for discrete variables
-  scale_color_viridis(option = "magma", direction = -1) +
+  scale_color_viridis(option = "magma", direction = -1) + #choosing viridis package, magma ramp w/in package, inverting direction to go from light to dark w/ depth
   theme(legend.position = "right", 
         legend.text = element_text(size = 12), legend.title = element_text(size = 12))
 print(NvsP2)
@@ -208,7 +223,7 @@ A useful guide for aligning plots by axis can be found here: https://wilkelab.or
 ```{r, fig.height = 7, fig.width = 6}
 #install.packages("cowplot")
 library(cowplot)
-plot_grid(NvsP2, Nutrientplot, nrow = 2, align = 'h', rel_heights = c(1.25, 1))
+plot_grid(NvsP2, Nutrientplot, nrow = 2, align = 'h', rel_heights = c(1.25, 1)) #rel_heights allows the plots to be different heights to fit better
 
 ```
 
