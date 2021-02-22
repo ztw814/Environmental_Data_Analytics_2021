@@ -1,6 +1,6 @@
 ---
 title: "Assignment 5: Data Visualization"
-author: "Student Name"
+author: "Zoe Wong"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -34,15 +34,29 @@ the processed data file for the Niwot Ridge litter dataset.
 
 ```{r}
 #1 
+getwd()
+library(tidyverse)
+library(cowplot)
+library(lubridate)
+
+NTL.tidy <- read.csv("../Data/Processed/NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv")
+NTL.gathered <- read.csv("../Data/Processed/NTL-LTER_Lake_Nutrients_PeterPaulGathered_Processed.csv")
+Niwo <- read.csv("../Data/Processed/NEON_NIWO_Litter_mass_trap_Processed.csv")
 
 #2 
+NTL.tidy$sampledate <- as.Date(NTL.tidy$sampledate, format = "%Y-%m-%d")
+NTL.gathered$sampledate <- as.Date(NTL.gathered$sampledate, format = "%Y-%m-%d")
+Niwo$collectDate <- as.Date(Niwo$collectDate, format = "%Y-%m-%d")
 
 ```
 ## Define your theme
 3. Build a theme and set it as your default theme.
 
 ```{r}
-
+mytheme <- theme_light(base_size = 12) +
+  theme(axis.text = element_text(color = "black"),
+        legend.position = "top")
+theme_set(mytheme)
 
 ```
 
@@ -52,7 +66,13 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 4. [NTL-LTER] Plot total phosphorus (`tp_ug`) by phosphate (`po4`), with separate aesthetics for Peter and Paul lakes. Add a line of best fit and color it black. Adjust your axes to hide extreme values.
 
 ```{r}
-
+NTL.phos <- ggplot(NTL.tidy, aes(x = po4, y = tp_ug, color = lakename)) +
+  geom_point() +
+  geom_smooth(method = lm, color = "black", se = FALSE) +
+  xlim(0, 45) +
+  ylim(-10, 150) +
+  labs(color = "Lake", y = "Total Phosphorus", x = "Phosphate (po4)")
+print(NTL.phos)
 
 ```
 
@@ -60,21 +80,51 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 5. [NTL-LTER] Make three separate boxplots of (a) temperature, (b) TP, and (c) TN, with month as the x axis and lake as a color aesthetic. Then, create a cowplot that combines the three graphs. Make sure that only one legend is present and that graph axes are aligned.
 
 ```{r}
+NTL.temp <- ggplot(NTL.tidy, aes(x = as.factor(month), y = temperature_C)) +
+  geom_boxplot(aes(color = lakename)) +
+  labs(x = "Month", color = "Lake", y = "Temp (C)")
 
+NTL.tp <- ggplot(NTL.tidy, aes(x = as.factor(month), y = tp_ug, color = lakename)) +
+  geom_boxplot() +
+  labs(x = "Month", y = "Total Phosphorus") +
+  theme(legend.position = "none")
+
+NTL.tn <- ggplot(NTL.tidy, aes(x = as.factor(month), y = tn_ug, color = lakename)) +
+  geom_boxplot() +
+  labs(x = "Month", y = "Total Nitrogen") +
+  theme(legend.position = "none")
+
+plot_grid(NTL.temp, NTL.tp, NTL.tn, nrow = 3, align = 'v', rel_heights = c(1.5, 1, 1))
 
 ```
 
 Question: What do you observe about the variables of interest over seasons and between lakes? 
 
-> Answer: 
+> Answer: Paul Lake has consistently lower tn, tp, and temperature readings than Peter Lake.  The range of values in Paul Lake is also smaller than Peter Lake for each variable.  Temperature in both lakes rises during the summer, peaks around July or August, and then begins to fall.  TP and TN also appear to rise in Peter Lake during the summer, although readings for Paul Lake stay relatively steady.
 
 6. [Niwot Ridge] Plot a subset of the litter dataset by displaying only the "Needles" functional group. Plot the dry mass of needle litter by date and separate by NLCD class with a color aesthetic. (no need to adjust the name of each land use)
+
+```{r}
+needles <- ggplot(subset(Niwo, functionalGroup == "Needles")) +
+  geom_point(aes(x = collectDate, y = dryMass, color = nlcdClass)) +
+  labs(color = "Land Cover Class", y = "Dry Mass", x = "Collection Date") +
+  scale_x_date(breaks = "2 months", date_labels = "%b %y") +
+  theme(axis.text.x = element_text(angle = 45,  hjust = 1))
+print(needles)
+```
+
 
 7. [Niwot Ridge] Now, plot the same plot but with NLCD classes separated into three facets rather than separated by color. 
 
 ```{r}
-
+needles.facet <- ggplot(subset(Niwo, functionalGroup == "Needles")) +
+  geom_point(aes(x = collectDate, y = dryMass)) +
+  facet_wrap(vars(nlcdClass), nrow = 1) +
+  scale_x_date(breaks = "3 months", date_labels = "%b %y") +
+  labs(x = "Collection Date", y = "Dry Mass") +
+  theme(axis.text.x = element_text(angle = 45,  hjust = 1))
+print(needles.facet)
 ```
 Question: Which of these plots (6 vs. 7) do you think is more effective, and why? 
 
-> Answer:
+> Answer: I think plot 7 is more effective because it's easier to see the differences in dry mass between each land use type.  It's difficult to distinguish the colors in plot 6.
