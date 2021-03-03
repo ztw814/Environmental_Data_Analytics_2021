@@ -156,7 +156,7 @@ Monotonic trends are a gradual shift over time that is consistent in direction. 
 
 ```{r}
 
-# Exercise 9: Apply one of the trend detection test to the original data set. Remember that the data has seasonal component, which test can be applied in this case?
+# Exercise 11: Apply one of the trend detection test to the original data set. Remember that the data has seasonal component, which test can be applied in this case?
 
 
 
@@ -166,7 +166,7 @@ Monotonic trends are a gradual shift over time that is consistent in direction. 
 
 
 
-# Exercise 10: Now remove the seasonality and apply another test. Compare the results with what you obtained on Exercise 9.
+# Exercise 12: Now remove the seasonality and apply another test. Compare the results with what you obtained on Exercise 9.
 
 
 
