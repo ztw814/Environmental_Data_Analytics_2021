@@ -66,7 +66,9 @@ Are Ozone levels below the threshold for "good" AQI index (0-50)?
 
 > Exercise 1: State the hypotheses for testing mean of AQI index.
 
-> Answer: 
+> Answer:
+Null: Mean ozone levels are greater than or equal to 50 (mu >= 50)
+Alternative: Mean ozone levels are not greater than 50 (mu < 50)
 
 
 ```{r}
@@ -76,7 +78,7 @@ summary(EPAair$Ozone)
 EPAair.subsample <- sample_n(EPAair, 5000)
 
 # Evaluate assumption of normal distribution
-shapiro.test((EPAair.subsample$Ozone))
+shapiro.test((EPAair.subsample$Ozone)) #H0: data are normally dist
 ggplot(EPAair, aes(x = Ozone)) +
   geom_histogram() 
 qqnorm(EPAair$Ozone); qqline(EPAair$Ozone)
@@ -88,13 +90,14 @@ Ozone.plot <- ggplot(EPAair, aes(x = Ozone)) +
   #geom_density(stat = "count", fill = "gray") +
   geom_density(fill = "gray") +
   geom_vline(xintercept = 50, color = "#238b45", lty = 2, size = 0.9) +
-  scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0))
+  scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) #expand gets rid of buffer space b/t graph and axes
 print(Ozone.plot)
 ```
 
 Write a sentence or two about the results of this test. Include both the results of the test and an interpretation that puts the findings in context of the research question.
 
-> 
+> On average, ozone measured in NC is less than 50ppm (t-test, df = 6829, p < 0.0001).
+
 
 ### Two-sample t-test
 
@@ -109,14 +112,14 @@ shapiro.test(EPAair$Ozone[EPAair$Year == 2019])
 #Compare variance using F-test (only)
 var.test(EPAair$Ozone ~ EPAair$Year)
 
-#p-value less than 0.05 then reject null for 2018 and 2019 i.e. true ratio not equal to one
+#p-value less than 0.05 then reject null for 2018 and 2019 i.e. true ratio not equal to one/variances are not equal
 
 ggplot(EPAair, aes(x = Ozone, color = as.factor(Year))) +
   geom_freqpoly()
 
 # Format as a t-test
 O3.twosample <- t.test(EPAair$Ozone ~ EPAair$Year)
-O3.twosample
+O3.twosample #the means are not equal
 O3.twosample$p.value
 
 # Format as a GLM
@@ -162,12 +165,15 @@ For the NTL-LTER dataset, can we predict PM2.5 from Ozone?
 ```{r}
 
 #Exercise 3: Run a linear regression PM2.5 by Ozone. Find the p-value and R-squared value. 
-
+pm25 <- lm(data = EPAair, PM2.5 ~ Ozone)
+summary(pm25)
 
 
 #Exercise 4: Build a scatterplot. Add a line and standard error for the linear regression. Add the regression equation to the plot
-
-
+pm25.plot <- ggplot(EPAair, aes(x = Ozone, y = PM2.5)) +
+  geom_point() +
+  geom_smooth(method = lm)
+print(pm25.plot)
 
 ```
 
@@ -177,18 +183,24 @@ For the NTL-LTER dataset, can we predict PM2.5 from Ozone?
 What other variables can we add to improve model?
 
 ```{r}
-
 #Exercise 5: Build correlation plots and identify more possible explanatory variables to add to the regression.
+library(corrplot)
+EPA_corr <- cor(EPAair %>% 
+                  select(SITE_LATITUDE:PM2.5) %>% 
+                  na.omit())
+corrplot.mixed(EPA_corr, upper = "ellipse")
 
-
-
+EPA_lat <- lm(data = EPAair, PM2.5 ~ Ozone + SITE_LATITUDE)
+summary(EPA_lat)
 
 #Exercise 6: Choose a model by AIC in a Stepwise Algorithm. Do the results from AIC match the variables you selected on Exercise 5?
+EPA_lm <- lm(data = EPAair, PM2.5 ~ Ozone + SITE_LATITUDE + SITE_LONGITUDE + Month + Year)
+step(EPA_lm)
 
 
-
-
-#Exercise 7: Run another regression using the variables selected on Exercise 6. Compare r-squared value withthe one from Exercise 5. 
+#Exercise 7: Run another regression using the variables selected on Exercise 6. Compare r-squared value with the one from Exercise 5. 
+EPA_AIC <- lm(data = EPAair, PM2.5 ~ Ozone + SITE_LATITUDE + SITE_LONGITUDE + Month)
+summary(EPA_AIC)
 
 ```
 

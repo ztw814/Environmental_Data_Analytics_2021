@@ -82,15 +82,21 @@ BRA_complete <- inner_join(Rainfall_BR_processed,Temp_BR_processed)
 
 #Exercise 5: Check if there is any missing data for both temperature and rainfall series.
 
-
-
+summary(BRA_complete$Date)
+summary(BRA_complete$Rainfall)
+summary(BRA_complete$Temperature_C)
 
 #Exercise 6: Plot both series over time on separate plots. Add a trend line using geom_smooth(). Can you say something about the trend just by visualizing the data?
 
+BRA.rainfall <- ggplot(BRA_complete, aes(x = Date, y = Rainfall)) +
+  geom_line() +
+  geom_smooth(method = "lm")
+print(BRA.rainfall)
 
-
-
-
+BRA.temp <- ggplot(BRA_complete, aes(x = Date, y = Temperature_C)) +
+  geom_line() +
+  geom_smooth(method = "lm")
+print(BRA.temp)
 
 ```
 
@@ -99,7 +105,12 @@ BRA_complete <- inner_join(Rainfall_BR_processed,Temp_BR_processed)
 ```{r}
 #Exercise 7: Create a time series objects for each series using ts(). Make sure you specify the starting point and frequency.
 
+first.mo <- month(first(BRA_complete$Date))
+first.yr <- year(first(BRA_complete$Date))
 
+BRA.rainfall.ts <- ts(BRA_complete$Rainfall, start = c(first.yr, first.mo), frequency = 12)
+
+BRA.temp.ts <- ts(BRA_complete$Temperature_C, start = c(first.yr, first.mo), frequency = 12)
 
 ```
 
@@ -121,25 +132,35 @@ The `stl` function decomposes the time series object into its component parts. W
 # Exercise 8: Use the stl() function to decompose both series. 
 # Visualize the decomposed series using plot(). What components can you identify?
 
+BRA.rainfall.decomp <- stl(BRA.rainfall.ts, s.window = "periodic")
+BRA.temp.decomp <- stl(BRA.temp.ts, s.window = "periodic")
 
-
-
-
+plot(BRA.rainfall.decomp)
+plot(BRA.temp.decomp)
 
 # Exercise 9: Use the times series object generated with the stl() to extract the 
 # components of each series and turn them into data frames.
 
-
-
-
-
+BRA.rainfall.components <- as.data.frame(BRA.rainfall.decomp$time.series[,1:3])
+BRA.temp.components <- as.data.frame(BRA.temp.decomp$time.series[,1:3])
 
 # Exercise 10: Visualize how the trend maps onto the data for both series
 
+BRA.rainfall.components <-
+  mutate(BRA.rainfall.components, Rainfall = BRA_complete$Rainfall, Date = BRA_complete$Date)
 
+BRA.temp.components <-
+  mutate(BRA.temp.components, Date = BRA_complete$Date, Temp_C = BRA_complete$Temperature_C)
 
+BRA.rainfall.plot <- ggplot(BRA.rainfall.components) +
+  geom_line(aes(x = Date, y = Rainfall), color = "Grey") +
+  geom_line(aes(x = Date, y = trend), color = "Red", size = 1)
+print(BRA.rainfall.plot)
 
-
+BRA.temp.plot <- ggplot(BRA.temp.components) +
+  geom_line(aes(x = Date, y = Temp_C), color = "Grey") +
+  geom_line(aes(x = Date, y = trend), color = "Red", size = 1)
+print(BRA.temp.plot)
 
 ```
 
@@ -158,23 +179,35 @@ Monotonic trends are a gradual shift over time that is consistent in direction. 
 
 # Exercise 11: Apply one of the trend detection test to the original data set. Remember that the data has seasonal component, which test can be applied in this case?
 
+BRA.rainfall.trend <- SeasonalMannKendall(BRA.rainfall.ts)
+BRA.rainfall.trend1 <- smk.test(BRA.rainfall.ts)
+print(BRA.rainfall.trend)
+summary(BRA.rainfall.trend) # the trend is significant
+print(BRA.rainfall.trend1)
+summary(BRA.rainfall.trend1)
 
-
-
-
-
-
-
+BRA.temp.trend <- SeasonalMannKendall(BRA.temp.ts)
+BRA.temp.trend1 <- smk.test(BRA.temp.ts)
+print(BRA.temp.trend)
+summary(BRA.temp.trend)
+print(BRA.temp.trend1)
+summary(BRA.temp.trend1)
 
 # Exercise 12: Now remove the seasonality and apply another test. Compare the results with what you obtained on Exercise 9.
 
+BRA.rainfall.noseason <- ts(data = BRA.rainfall.components$Rainfall - BRA.rainfall.components$seasonal,
+                            start = c(first.yr, first.mo),
+                            frequency = 12)
 
+BRA.rainfall.mk <- mk.test(BRA.rainfall.noseason)
+print(BRA.rainfall.mk)
 
+BRA.temp.noseason <- ts(data = BRA.temp.components$Temp_C - BRA.temp.components$seasonal,
+                            start = c(first.yr, first.mo),
+                            frequency = 12)
 
-
-
-
-
+BRA.temp.mk <- mk.test(BRA.temp.noseason)
+print(BRA.temp.mk)
 
 
 
