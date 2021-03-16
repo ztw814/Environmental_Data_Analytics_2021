@@ -167,7 +167,7 @@ huc2_utm <-
 Select the counties in the "Triangle" (Chatham, Durham, Orange, and Wake). Then select the HUC_8s that touch these counties. And finally, select the portions of the HUC_8s that occur within these counties.
 
 ```{r EXERCISE: Clipping}
-#Select the Triangle County from the 
+#Select the Triangle counties from the sf_counties dataframe
 
 
 
