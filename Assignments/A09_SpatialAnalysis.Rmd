@@ -210,29 +210,3 @@ Now let's zoom into a particular county and examine the gages located there.
 
 
 ```
-
-
-### Summarize data by county
-
-Finally, we'll summarize our gage height data by county and then display each county by it's mean gage height. 
-26. Group the spatially joined gage location/county dataset on the county name 
- * Compute mean gage height 
-27. Join (non-spatially) this result to our county sf dataframe 
- * Prior to joining, you'll need to drop the geometry column from the gage locations 
- * To do this, see the `st_drop_geometry` function
- * Plot the counties showing mean gage heights for each county
- * Not all counties will have data
-
-```{r}
-#Spatially join the county name to each gage feature
-
-
-
-#Group the gage features on the county GEOID and summarize
-
-
-
-#Join the data back to the counties dataset and plot
-
-
-```
