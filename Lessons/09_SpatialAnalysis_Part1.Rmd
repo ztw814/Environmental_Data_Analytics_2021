@@ -81,7 +81,7 @@ EPAair_PM_avg <- EPAair_PM25_NC2018_raw %>%
 
 #Plot the data using longitude and latitude as X and Y
 ggplot(EPAair_PM_avg, aes(x=SITE_LONGITUDE, y=SITE_LATITUDE)) + 
-  geom_point(aes(color=meanPM), size=4, alpha=0.5) + coord_equal() 
+  geom_point(aes(color=meanPM), size=4, alpha=0.5) + coord_equal() # coord_equal() puts x and y axes on the same scale so the plot makes spatial sense
 ```
 
 This is more of a proof of concept than a useful map. We can sort of visualize spatial patterns in the data, but without context of scale or location, it's somewhat difficult. We can greatly improve this map with the help of some mapping packages for R...
@@ -120,14 +120,16 @@ See <http://rstudio.github.io/leaflet/> for more info
 
 #Create the map and add Tiles
 myMap  <- leaflet(data=EPAair_PM_avg) %>% 
-  addTiles() %>% 
+  addTiles() %>% # tiles are backgrounds - different options
   addCircleMarkers(~SITE_LONGITUDE,~SITE_LATITUDE,
                    radius=(~meanPM*2),
                    stroke = FALSE, 
                    fillOpacity = 0.3,
-                   popup = ~as.character(`Site.Name`))
+                   popup = ~as.character(`Site.Name`)) #what you see when you click on a location in the map
 #Show the map
 myMap
+
+#can save the map and open in web broswer using export from viewer pane (good for exploring more, sending to others, etc)
 ```
 
 There's much more we can do to make these maps prettier and more powerful, but we'll come back to that. But take time to notice the power of mapping: like previous plots, we are able to interpret patterns in our dataset, but in geographically mapping our data, we can visualize these patterns in a much richer context by viewing them next to other spatial datasets (e.g. our basemaps). Ok, let's continue talking about spatial features in the vector model...
@@ -174,8 +176,8 @@ Sf objects are organized into three main classes, which you can read more about 
 Also, sf geometries are organized into three main classes:
 
 1.  sf - the data frame that with feature attributes and feature geometries, this contains...
-2.  sfc - the list-column with the geometries for each record, this contains...
-3.  sfg - the feature geometry of an individual simple feature
+2.  sfc - spatial feature column: the list-column with the geometries for each record, this contains...
+3.  sfg - spatial feature geometry: the feature geometry of an individual simple feature
 
 There are a number of different types of "simple features" geometry types represented by the sf package (Table 1). You can read about all of these [here](https://r-spatial.github.io/sf/articles/sf1.html).
 
@@ -203,7 +205,7 @@ First, let's convert our EPA dataframe to a simple features ("sf") dataframe and
 
 #Convert the dataset to a spatially enabled "sf" data frame
 sf_EPAair_PM_avg <- st_as_sf(EPAair_PM_avg,
-                             coords = c('SITE_LONGITUDE','SITE_LATITUDE'),
+                             coords = c('SITE_LONGITUDE','SITE_LATITUDE'), # c(x,y)
                              crs=4326)
 
 #Do you see a new column name?                
@@ -230,15 +232,15 @@ The `plot` command creates some quick but very rough plots. Let's return to the 
 ```{r plotting sf objects}
 #With geometries now available in a column, we can use ggplot with the geom_sf object
 ggplot() + 
-  geom_sf(data=sf_EPAair_PM_avg, aes(color=meanPM, size=maxPM))
+  geom_sf(data=sf_EPAair_PM_avg, aes(color=meanPM, size=maxPM)) #don't have to specify x/y=
 
 #Plot everything -- with MapView
 mapview(sf_EPAair_PM_avg)
 
 #View multiple attributes with MapView
 mapview(sf_EPAair_PM_avg, 
-        zcol='meanPM', 
-        cex='maxPM')
+        zcol='meanPM', #defines circle color
+        cex='maxPM') #defines circle size
 
 #Plot with leaflet using markers
 leaflet(sf_EPAair_PM_avg) %>% 
@@ -258,7 +260,7 @@ m <- leaflet(sf_EPAair_PM_avg) %>%
   addCircleMarkers(
     radius = ~maxPM/3,
     color = ~pal(meanPM),
-    stroke = FALSE, 
+    stroke = FALSE, #adds a transparent border around circles 
     fillOpacity = 0.9,
     label = ~as.character(maxPM))
 
@@ -287,7 +289,7 @@ With our EPA data now stored as geometric objects (vs coordinate pairs), we can 
 #Buffer the Durham Armory point 0.1 degrees
 Durham_buffer <- sf_EPAair_PM_avg %>% 
   filter(Site.Name == 'Durham Armory') %>% 
-  st_buffer(0.1)
+  st_buffer(0.1) #buffer by 0.1 units (in this case, lat/long are our units)
 
 #View the result
 mapView(Durham_buffer)
@@ -445,7 +447,7 @@ grainger_sfg <- st_point(c(-78.9427,36.00465))
 class(grainger_sfg)
 
 #Convert to a sfc object, adding a coordinate reference system
-grainger_sfc <- st_sfc(grainger_sfg, crs=4326)
+grainger_sfc <- st_sfc(grainger_sfg, crs=4326) #can't plot the point until its crs is specified
 
 #Examine this item
 class(grainger_sfc)
@@ -469,7 +471,7 @@ mapview(sf_DurhamArmory,
 
 #Oh no, an error! We forgot to transform our Grainger Hall point to the same CRS as the Armory
 
-#Transform the Grainger hall SFC to UTM Zone 17n
+#Transform the Grainger hall SFC to crs of Durham Armory (UTM Zone 17N)
 grainger_sfc_utm <-  st_transform(grainger_sfc, crs=st_crs(sf_DurhamArmory))
 
 #Check the EPSG of our transformed object; it should equal 26917
@@ -478,7 +480,7 @@ st_crs(grainger_sfc_utm)$epsg
 #Now, try computing distance again
 the_distance <- st_distance(x = sf_DurhamArmory,
                             y = grainger_sfc_utm,
-                            by_element = TRUE)
+                            by_element = TRUE) #makes the result one number instead of a 1x1 matrix
 
 #Print the results
 print(str_c("The distance between the two points is ", 

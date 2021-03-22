@@ -88,7 +88,7 @@ st_crs(counties_sf)
 nrow(counties_sf)
 
 #Reveal the extent of this dataset via the st_bbox() function
-st_bbox(counties_sf)
+st_bbox(counties_sf) #returns coordinates of upper left/lower right corners of box around extent
 
 #View the data
 head(counties_sf)
@@ -103,19 +103,19 @@ mapView(counties_sf, zcol = "AWATER")
 
 ```{r read HUCs shapefile}
 #Read the shapefile into an sf dataframe named "huc8_sf"
-
+huc8_sf <- st_read("./Data/Spatial/NCHUC8.shp")
 
 #Reveal the columns
-
+colnames(huc8_sf)
 
 #Check the CRS
-
+st_crs(huc8_sf)
 
 #Examine some records
-
+head(huc8_sf)
 
 #View the data as a map, colored by the acreage in each
-
+mapview(huc8_sf, zcol = "ACRES")
 
 ```
 
@@ -125,11 +125,13 @@ mapView(counties_sf, zcol = "AWATER")
 
 ```{r Select the Upper Neuse HUC 8}
 #Read the shapefile into an sf dataframe
-
+huc8_sf_Neuse <- st_read("./Data/Spatial/NCHUC8.shp") %>% 
+  filter(SUBBASIN == "Upper Neuse")
 
 
 #Create a map
-
+mapview(huc8_sf_Neuse) +
+  mapview(huc8_sf, col.regions = "purple")
 
 ```
 
@@ -162,7 +164,7 @@ nc_powerplants_sf <- powerplants_sf %>%
 #Have a look the variety of types (and number of each)
 nc_powerplants_sf %>% 
   st_drop_geometry() %>% 
-  count(TYPE, sort=TRUE)
+  count(TYPE, sort=TRUE) #shows unique values of TYPE in console
 
 #Most are solar farms; let's remove those
 nc_powerplants_sf <- nc_powerplants_sf %>% 
@@ -179,11 +181,11 @@ ggplot(nc_powerplants_sf) +
 
 Joining data to spatial features works the same as joining tables: we just need a common attribute to link the two datasets. Here, we'll add demographic data to our Census county feature, using the State&County FIPS code as the common attributes.
 
-The data we'll add here is the CDC's Social Vulnerabiliy Index data. Information on this dataset is available here:
+The data we'll add here is the CDC's Social Vulnerability Index data. Information on this dataset is available here:
 
 Social Vulnerability Data: - <https://www.atsdr.cdc.gov/placeandhealth/svi/documentation/SVI_documentation_2018.html> - <https://www.atsdr.cdc.gov/placeandhealth/svi/documentation/pdf/SVI2018Documentation-H.pdf>
 
-Brief notes: - "E\_" are estimates; "M\_" are margins of error - "EP\_ are estimates, in percentages - "SPL_THEME1" is sum of series - "RPL_THEME1" is percentile ranking
+Brief notes: - "E\_" are estimates; "M\_" are margins of error - "EP\_" are estimates, in percentages - "SPL_THEME1" is sum of series - "RPL_THEME1" is percentile ranking
 
 We'll focus on just a few variables: Estimates of people in poverty ("E_POV") and of minority population ("E_MINRTY"), keeping the location attributes as well.
 
@@ -191,17 +193,17 @@ We'll focus on just a few variables: Estimates of people in poverty ("E_POV") an
 #Read the 2018 SVI county-level dataset for NC
 svi2018_nc_raw <- read.csv(
   'https://svi.cdc.gov/Documents/Data/2018_SVI_Data/CSV/States_Counties/NorthCarolina_COUNTY.csv',
-  colClasses = c('FIPS' = 'factor')) %>% 
+  colClasses = c('FIPS' = 'factor')) %>% #import FIPS column as factor
   select(COUNTY, FIPS, LOCATION, E_TOTPOP, E_POV, E_MINRTY)
 
 #Check structure
 str(svi2018_nc_raw)
 
-#Join the SVI attributes to the county spatial features
+#Join the SVI attributes to the county spatial features in base R
 counties_sf_join <-  merge(x = counties_sf,
                            y = svi2018_nc_raw, 
-                           by.x = "GEOID", 
-                           by.y = "FIPS" )
+                           by.x = "GEOID", # join field in x dataset
+                           by.y = "FIPS" ) # join field in y dataset
 
 #Tidyverse version of the join
 counties_sf_join <- counties_sf %>% 
@@ -225,12 +227,17 @@ ggplot() +
 
 ```{r}
 #Compute HUC8 wind energy
-
+enviroatlas_huc12 <- read.csv("https://raw.githubusercontent.com/ENV859/EnviroAtlasData/main/Wind_Energy.csv",
+                              colClasses = c("HUC_12" = "factor")) %>% 
+  mutate(HUC_8 = substr(HUC_12,1,8)) %>% #taking characters 1-8 from HUC_12 to form HUC_8
+  group_by(HUC_8) %>% 
+  summarize(kWhkm2day = sum(kWhkm2day))
 
 
 
 #Join to HUC_8 features
-
+windenergy_huc8 <- huc8_sf %>% 
+  left_join(enviroatlas_huc12, by = c('HUC_8','HUC_8')) #not running idk why
 
 
 
@@ -260,17 +267,17 @@ mapview(state_sf)
 
 ```{r Aggregate the HUC data on an attribute, saving as huc2_sf}
 #List the unique values in the DWQ_Basin field
-
-
-
+unique(huc8_sf$DWQ_Basin)
 
 #Summarize on DWQ Basin value
-
-
-
+huc8_sf_DWQBasin <- huc8_sf %>% 
+  group_by(DWQ_Basin) %>% 
+  summarize(acres = sum(ACRES),
+            sq_miles = sum(SQ_MILES))
 
   
 #Map the data
+mapview(huc8_sf_DWQBasin, zcol = "acres")
 
 ```
 
@@ -300,7 +307,7 @@ epa_sf_utm <-      st_transform(epa_pm25_sites_sf, crs = 26917)
 counties_sf_utm <- st_transform(counties_sf, crs = 26917)
 state_sf_utm <-    st_transform(state_sf,crs = 26917)
 huc8_sf_utm <-     st_transform(huc8_sf, crs = 26917)
-huc2_utm <-        st_transform(huc2_sf, crs = 26917)
+huc2_utm <-        st_transform(huc8_sf_DWQBasin, crs = 26917)
 ```
 
 ## 3.3 Clipping and intersecting data
@@ -324,24 +331,24 @@ myMap = mapview(neuse_sf,
 myMap
 
 #Select intersecting counties using matrix subsetting
-neuse_intersect_1 <- counties_sf_utm[neuse_sf,]
+neuse_intersect_1 <- counties_sf_utm[neuse_sf,] #finding which counties intersect w/ neuse_sf
 
-#Select intersecting counties using the `filter()` command
+#Select intersecting counties using the `filter()` command (Tidyverse)
 neuse_intersect_2 <- counties_sf_utm %>% 
-  filter(st_intersects(x = ., y = neuse_sf, sparse = FALSE))
+  filter(st_intersects(x = ., y = neuse_sf, sparse = FALSE)) #x = . means x = counties_sf_utm (earlier dataset in pipe)
 
 #View the result
 myMap + mapview(neuse_intersect_2, alpha.regions = 0)
 
 #Actually intersect the counties (not just select those that intersect)
-neuse_counties_sf <- neuse_sf %>% 
-  st_intersection(counties_sf_utm)
+neuse_counties_sf <- neuse_sf %>% #cookie cutter
+  st_intersection(counties_sf_utm) #cookie dough to cut out of
 myMap + mapview(neuse_counties_sf, alpha.regions = 0)
 
-#Update the area the features, now that some are clipped
+#Update the area of the features (attribute), now that some are clipped
 neuse_counties_sf <- neuse_counties_sf %>% 
-  mutate(Area_m2 = st_area(neuse_counties_sf$geometry)) %>% 
-  as.numeric()
+  mutate(Area_m2 = st_area(neuse_counties_sf$geometry)) %>% #calculating area of each cut off county
+  as.numeric() #adding area as numbers not with its units
 mapview(neuse_counties_sf, zcol='Area_m2')
 
 ```
@@ -350,18 +357,20 @@ mapview(neuse_counties_sf, zcol='Area_m2')
 
 ```{r EXERCISE: Clipping}
 #Select the Triangle County from the 
-
+the_triangle <- counties_sf_utm %>% 
+  filter(NAME %in% c("Chatham", "Durham", "Orange", "Wake"))
 
 
   
 #Grab the intersecting HUC_8s
-
-
+triangle_intersect <- huc8_sf_utm %>% 
+  filter(st_intersects(x = ., y = the_triangle, sparse = FALSE))
+mapview(the_triangle, alpha.regions = 0, color = "red") + mapview(triangle_intersect)
 
 #Intersect the HUC_8s
-
-
-
+triangle_intersection <- huc2_utm %>% 
+  st_intersection(the_triangle)
+mapview(triangle_intersection) + mapview(the_triangle, alpha.regions = 0, color = "red")
 
 ```
 
@@ -446,10 +455,16 @@ mapView(counties_sf[resultMask,])
 > Questions: how might we use the `st_buffer` function to show all counties within 30km of the site?
 
 ```{r Select counties within a 30 km area from the site}
+site_30km <- st_buffer(theSite_sfc_transformed, 30000)
+mapview(site_30km)
 
+resultMask_30km <- st_intersects(counties_sf_utm,
+                                 site_30km,
+                                 sparse = FALSE)
 
-
-                            
+selCounties_30km <- counties_sf_utm[resultMask_30km,] 
+mapview(selCounties_30km)
+                           
 ```
 
 # 4. VISUALIZATION
@@ -488,7 +503,7 @@ EPAair_wgs84 <- st_transform(epa_pm25_sites_sf, c=4326)
 counties_WGS84 <- st_transform(counties_sf_utm, c=4326)
 state_WGS84 <- st_transform(state_sf,c=4326)
 huc8s_WGS84 <- st_transform(huc8_sf,c=4326)
-huc2_WGS84<- st_transform(huc2_sf,c=4326)
+huc2_WGS84<- st_transform(huc8_sf_DWQBasin,c=4326)
 
 #Now plot with leaflet: no errors as all layers are in Leaflet's native CRS (WGS84)
 leaflet() %>% addTiles() %>% 
@@ -547,5 +562,5 @@ library(leafsync)
 latticeview(m1, m2)
 
 #Create a synchronized view...
-sync(m1,m2)
+sync(m1,m2) #can also export to html and others can explore, pan, etc.
 ```
