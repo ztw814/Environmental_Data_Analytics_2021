@@ -42,7 +42,7 @@ You might now feel that web scraping isn't always legitimate - and you're right!
 
 
 > For discussion: Can you give examples of ethical and unethical web scraping?
-
+> Answer: check if they have a robots.txt file, terms of service mentioned
 
 ## 1.1 Exploring the data we want to scrape
 
@@ -136,13 +136,13 @@ Now that we've scraped the data we want into our coding environment, the next st
 ```{r create.dataframe.from.scrapings}
 #Create a dataframe of withdrawals
 df_withdrawals <- data.frame("Month" = rep(1:12),
-                             "Year" = rep(2000,12),
+                             "Year" = rep(2000,12), # repeat "2000" 12 times
                              "Avg_Withdrawals_mgd" = as.numeric(avg_withdrawals),
                              "Max_Withdrawals_mgd" = as.numeric(max_withdrawals))
 
 #Modify the dataframe to include the facility name and type as well as the date (as date object)
 df_withdrawals <- df_withdrawals %>% 
-  mutate(Registrant = !!the_registrant,
+  mutate(Registrant = !!the_registrant, #!! means this is a variable
          Facility_name = !!the_facility_name,
          Facility_type = !!the_facility_type,
          Date = my(paste(Month,"-",Year)))
@@ -171,7 +171,7 @@ This begins by setting the parameters of the page we'll be scraping to variables
 the_base_url <- 'https://www.ncwater.org/WUDC/app/WWATR/report/view'
 the_facility <- '0004-0001'
 the_year <- 2015
-the_scrape_url <- paste0(the_base_url, '/', the_facility, '/', the_year)
+the_scrape_url <- paste0(the_base_url, '/', the_facility, '/', the_year) #paste0 eliminates spaces bt strings
 print(the_scrape_url)
 
 #Retrieve the website contents 
@@ -202,7 +202,7 @@ df_withdrawals <- data.frame("Month" = rep(1:12),
 ggplot(df_withdrawals,aes(x=Date,y=Avg_Withdrawals_mgd)) + 
   geom_line() + 
   geom_smooth(method="loess",se=FALSE) +
-  labs(title = paste("2020 Water usage data for",the_registrant),
+  labs(title = paste(the_year,"Water usage data for",the_registrant),
        subtitle = the_facility_name,
        y="Withdrawal (mgd)",
        x="Date")
@@ -245,7 +245,7 @@ scrape.it <- function(the_year, the_facility){
            Date = my(paste(Month,"-",Year)))
   
   #Pause for a moment - scraping etiquette
-  #Sys.sleep(1) #uncomment this if you are doing bulk scraping!
+  #Sys.sleep(1) #uncomment this if you are doing bulk scraping! tells R to pause for 1 second before continuing
   
   #Return the dataframe
   return(df_withdrawals)
@@ -307,7 +307,7 @@ the_main_website <- read_html(the_main_url)
 #Then extract all the nodes associated with this and rather than extracting them 
 the_facility_ids <- the_main_website %>% 
   html_nodes('#content a') %>%    #Extract a list of html nodes taged with "content a"
-  html_attr("href") %>%           #Pull the "href" attribute from the node
+  html_attr("href") %>%           #Pull the "href" attribute from the node (instead of just straight text)
   str_split("/") %>%              #Split the html address into substrings, separated by "/"
   map_chr(.,9)                    #Extract the 9th item in the above, which is the facility ID
 
@@ -331,9 +331,9 @@ the_facility_ids_subset <-  sample(the_facility_ids,20)
 the_years <- rep.int(2020,length(the_facility_ids_subset))
 
 #"Map" the "scrape.it" function to retrieve data for all these
-dfs_2020 <- map2(the_years, the_facility_ids_subset, scrape.it) 
+dfs_2020 <- map2(the_years, the_facility_ids_subset, scrape.it) #using map2 to iterate through both lists in parallel (first item in both lists, then second item in both lists, etc)
 
-#Conflate the returned list of dataframes into a single one
+#Conflate the returned list of 20 dataframes into a single one
 df_2020 <- bind_rows(dfs_2020)
 
 
@@ -355,7 +355,7 @@ the_years = c(2018,2019,2020)
 #Use the cross2 function to generate a list of unique combos of year and facility ids
 #Then send apply our scrape.it function to grab values into a list of dataframes
 the_df <- cross2(the_years,the_facilities) %>% 
-  map(lift(scrape.it)) %>% 
+  map(lift(scrape.it)) %>% #lift applies cross2 to map/scrape.it function
   bind_rows()
 
 #Plot
