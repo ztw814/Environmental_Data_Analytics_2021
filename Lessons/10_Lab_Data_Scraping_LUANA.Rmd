@@ -162,7 +162,7 @@ You'll also need to look up the IDs of the variables you want to extract. Those 
 
 ```{r}
 #Apply the API key
-#census_api_key("4704da71b850b6b6cc071c0dd17b40741706cbcf", install=TRUE)
+#census_api_key("4704da71b850b6b6ccf071c0dd17b40741706cbcf", install=TRUE)
 
 #get_acs(): obtain data and feature geometry for the American Community Survey
 nc_pop <- 
