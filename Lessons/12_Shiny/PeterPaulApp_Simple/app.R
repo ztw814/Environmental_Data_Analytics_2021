@@ -2,7 +2,7 @@
 library(shiny)
 library(tidyverse)
 
-#### Load data ----
+#### Load/wrangle data ----
 nutrient_data <- read_csv("Data/NTL-LTER_Lake_Nutrients_PeterPaul_Processed.csv")
 nutrient_data$sampledate <- as.Date(nutrient_data$sampledate, format = "%Y-%m-%d")
 nutrient_data <- nutrient_data %>%
@@ -10,17 +10,21 @@ nutrient_data <- nutrient_data %>%
   select(lakename, sampledate:po4)
 
 #### Define UI ----
-ui <- fluidPage(
+ui <- fluidPage(    #user can resize page, material will react to what the user does
   titlePanel("Nutrients in Peter Lake and Paul Lake"),
   sidebarLayout(
     sidebarPanel(
       
-      # Select nutrient to plot
+      # Select nutrient to plot; selectInput() = dropdown menu
       selectInput(inputId = "dropdown_input", 
-                  label = "Nutrient",
+                  label = "Nutrient 1",
                   choices = c("tn_ug", "tp_ug", "nh34", "no23", "po4"), 
                   selected = "tp_ug"),
   
+      selectInput(inputId = "y", 
+                  label = "Nutrient 2",
+                  choices = c("tn_ug", "tp_ug", "nh34", "no23", "po4"), 
+                  selected = "tp_ug"),
       ),
 
     # Output

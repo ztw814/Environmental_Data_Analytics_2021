@@ -11,8 +11,9 @@ nutrient_data <- nutrient_data %>%
   select(lakename, sampledate:po4)
 
 #### Define UI ----
-ui <- fluidPage(theme = shinytheme("yeti"),
+ui <- fluidPage(theme = shinytheme("united"),
   titlePanel("Nutrients in Peter Lake and Paul Lake"),
+  titlePanel("Zoe Wong"),
   sidebarLayout(
     sidebarPanel(
       
@@ -63,12 +64,12 @@ server <- function(input, output) {
         ggplot(filtered_nutrient_data(), 
                aes_string(x = "sampledate", y = input$y, 
                           fill = "depth_id", shape = "lakename")) +
-          geom_point(alpha = 0.8, size = 2) +
-          theme_classic(base_size = 14) +
+          geom_point(alpha = 0.6, size = 4) +
+          theme_classic(base_size = 16) +
           scale_shape_manual(values = c(21, 24)) +
           labs(x = "Date", y = expression(Concentration ~ (mu*g / L)), shape = "Lake", fill = "Depth ID") +
-          scale_fill_distiller(palette = "YlOrBr", guide = "colorbar", direction = 1)
-          #scale_fill_viridis_c(option = "viridis", begin = 0, end = 0.8, direction = -1)
+          #scale_fill_distiller(palette = "YlOrBr", guide = "colorbar", direction = 1)
+          scale_fill_viridis_c(option = "magma", begin = 0.2, end = 1, direction = -1)
       })
        
     # Create a table that generates data for each point selected on the graph  
@@ -86,14 +87,29 @@ shinyApp(ui = ui, server = server)
 #1. Play with changing the options on the sidebar. 
     # Choose a shinytheme that you like. The default here is "yeti"
     # How do you change the default settings? 
+        # You can change the default position of the sidebar with position = "right"
     # How does each type of widget differ in its code and how it references the dataframe?
+        # The code to define each widget is pretty similar - all involve an inputId, label, parameters, and 
+        # default values.  The slider widget is a little different because it requires two parameters (min/max)
+        # rather than just one. 
 #2. How is the mainPanel component of the UI structured? 
+        # Within the mainPanel command, you can add different types of outputs including plots and tables.
     # How does the output appear based on this code?
+        # The plot is coded first, so it appears first (on top) in the Shiny app.
 #3. Explore the reactive formatting within the server.
     # Which variables need to have reactive formatting? 
+        # Here, the date, depth, and lakename variables need reactive formatting.  In general,
+        # any variables for which the user can select certain values need reactive formatting.
     # How does this relate to selecting rows vs. columns from the original data frame?
+        # This is basically the same process of filtering using tidy - we're just filtering by pointing 
+        # to somewhere else in the code.
 #4. Analyze the similarities and differences between ggplot code for a rendered vs. static plot.
     # Why are the aesthetics for x, y, fill, and shape formatted the way they are?
+        # x, fill, and shape are direct calls to a column in the dataset, so they can simply be called 
+        # with the column name since the user's choices are defined using the reactive formatting above.  
+        # However, y is formatted as input$y because the user can select between multiple different columns
+        # in the dataset. Because the user may choose between a menu of columns, we can't simply code y to a 
+        # single column.
     # Note: the data frame has a "()" after it. This is necessary for reactive formatting.
     # Adjust the aesthetics, playing with different shapes, colors, fills, sizes, transparencies, etc.
 #5. Analyze the code used for the renderTable function. 
